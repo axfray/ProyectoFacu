@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canjear Código Empresarial</title>
+    <!-- CSS de Bootstrap para los estilos visuales -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light py-5">
+
+    <div class="container" style="max-width: 500px;">
+        <div class="card shadow-sm border-0 mt-5">
+            <div class="card-body p-4">
+                <h3 class="card-title text-center fw-bold mb-3">Canjear Código Empresarial</h3>
+                <p class="text-muted text-center small mb-4">Ingresa el código proporcionado por tu empresa para habilitar tu curso.</p>
+
+                <!-- Mensajes de éxito o error enviados desde Django -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="POST" action="{% url 'canjear_codigo' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="codigo" class="form-label fw-bold">Código de Licencia</label>
+                        <input type="text" class="form-control form-control-lg text-uppercase" id="codigo" name="codigo" placeholder="EJ: EMPRESA-2026-X8" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold mt-2">Canjear e Inscribirse</button>
+                </form>
+
+                <div class="text-center mt-4">
+                    <a href="{% url 'catalogo_cursos' %}" class="text-decoration-none text-secondary">Volver al Catálogo</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
