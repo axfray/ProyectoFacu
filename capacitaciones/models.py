@@ -25,8 +25,9 @@ class PerfilUsuario(models.Model):
 
 class Curso(models.Model):
     titulo = models.CharField(max_length=200)
-    descripcion = models.TextField(blank=True)
-    precio_b2c = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    descripcion = models.TextField()
+    precio_b2c = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    imagen_url = models.URLField(blank=True, null=True, help_text="URL de la imagen del curso")
     activo = models.BooleanField(default=True)
     creado_en = models.DateTimeField(auto_now_add=True)
 
