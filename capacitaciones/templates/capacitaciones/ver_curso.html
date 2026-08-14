@@ -1,0 +1,43 @@
+{% extends 'capacitaciones/base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="fw-bold mb-3">{{ curso.titulo }}</h2>
+    <p class="text-muted">Mira la clase completa para habilitar el examen final.</p>
+
+    <div class="row justify-content-center my-4">
+        <div class="col-lg-10">
+            <!-- Reproductor de Video HTML5 -->
+            <div class="ratio ratio-16x9 bg-dark rounded shadow">
+                <video id="reproductorCurso" controls controlsList="nodownload">
+                    <source src="{{ curso.video_url }}" type="video/mp4">
+                    Tu navegador no soporta el reproductor de video.
+                </video>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botón hacia el examen (deshabilitado al inicio) -->
+    <div class="text-center mt-4">
+        <a id="btnExamen" href="{% url 'tomar_examen' curso.id %}" class="btn btn-success btn-lg disabled" tabindex="-1" aria-disabled="true">
+            <i class="fa-solid fa-file-pen me-2"></i>Rendir Examen Final
+        </a>
+        <p id="mensajeVideo" class="text-muted small mt-2">Debes ver el video completo para desbloquear la evaluación.</p>
+    </div>
+</div>
+
+<script>
+    const video = document.getElementById('reproductorCurso');
+    const btnExamen = document.getElementById('btnExamen');
+    const mensaje = document.getElementById('mensajeVideo');
+
+    // Desbloquear botón solo al terminar el video
+    video.addEventListener('ended', function() {
+        btnExamen.classList.remove('disabled');
+        btnExamen.removeAttribute('tabindex');
+        btnExamen.removeAttribute('aria-disabled');
+        mensaje.innerText = "¡Clase completada! Ya puedes rendir tu examen.";
+        mensaje.className = "text-success fw-bold small mt-2";
+    });
+</script>
+{% endblock %}

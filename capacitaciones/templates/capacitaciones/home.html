@@ -79,11 +79,18 @@
                         <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
                             <div>
                                 <small class="text-muted d-block">Inversión</small>
-                                <span class="fs-4 fw-bold text-primary">${{ curso.precio_b2c }}</span>
+                                <span class="fs-5 fw-bold text-primary">${{ curso.precio_b2c }}</span>
                             </div>
-                            <a href="{% url 'detalle_curso' curso.id %}" class="btn btn-primary">
-                                Ver Curso <i class="fa-solid fa-arrow-right ms-1"></i>
-                            </a>
+                            <div class="d-flex gap-2">
+                                <!-- Botón Ver Detalle -->
+                                <a href="{% url 'detalle_curso' curso.id %}" class="btn btn-outline-primary btn-sm">
+                                    Detalle
+                                </a>
+                                <!-- Botón Comprar directo a Mercado Pago -->
+                                <a href="{% url 'comprar_curso' curso.id %}" class="btn btn-success btn-sm fw-semibold">
+                                    <i class="fa-solid fa-cart-shopping me-1"></i> Comprar
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>

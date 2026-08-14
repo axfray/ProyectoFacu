@@ -13,6 +13,11 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import Curso, Inscripcion
+
 # Todos los modelos importados juntos al inicio
 from .models import Curso, Inscripcion, CodigoB2B, PerfilUsuario
 
@@ -259,3 +264,31 @@ def activar_cuenta(request, uidb64, token):
     else:
         messages.error(request, "El enlace de activación es inválido o ha expirado.")
         return redirect('home')
+
+@login_required
+def ver_curso(request, curso_id):
+    curso = get_object_or_404(Curso, id=curso_id)
+    
+    # Seguridad: Verificar si el usuario está inscripto
+    inscrito = Inscripcion.objects.filter(usuario=request.user, curso=curso).exists()
+    if not inscrito:
+        messages.error(request, "Debes adquirir este curso antes de acceder al contenido.")
+        return redirect('mis_cursos')
+
+    return render(request, 'capacitaciones/ver_curso.html', {'curso': curso})
+
+
+@login_required
+def tomar_examen(request, curso_id):
+    curso = get_object_or_404(Curso, id=curso_id)
+    
+    inscrito = Inscripcion.objects.filter(usuario=request.user, curso=curso).exists()
+    if not inscrito:
+        return redirect('mis_cursos')
+
+    if request.method == 'POST':
+        # Aquí procesas las respuestas del examen
+        messages.success(request, "¡Examen completado con éxito!")
+        return redirect('mis_cursos')
+
+    return render(request, 'capacitaciones/examen.html', {'curso': curso})
