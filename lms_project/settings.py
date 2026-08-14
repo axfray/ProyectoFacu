@@ -129,5 +129,5 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'ferreyraaxel40@gmail.com'  # Tu email corporativo o personal
-EMAIL_HOST_PASSWORD = 'mull dflu pobz ghet'  # Contraseña de aplicación de Google (16 caracteres)
+EMAIL_HOST_PASSWORD = 'EMAIL_HOST_PASSWORD'  # Contraseña de aplicación de Google (16 caracteres)
 DEFAULT_FROM_EMAIL = 'Academia S&H <ferreyraaxel40@gmail.com>'
