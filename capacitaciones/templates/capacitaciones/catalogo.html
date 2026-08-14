@@ -1,54 +1,47 @@
-<!DOCTYPE html>
 {% extends 'capacitaciones/base.html' %}
 
 {% block content %}
-<html lang="es">
-<body class="bg-light py-5">
-
-    <div class="container">
-        <!-- Encabezado con Botones -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold">Capacitaciones</h2>
-            <div>
-                <a href="{% url 'canjear_codigo' %}" class="btn btn-outline-secondary me-2">Tengo un código</a>
-            </div>
-        </div>
-
-        <div class="row g-4">
-        {% for curso in cursos %}
-            <div class="col-md-6 col-lg-4">
-                <div class="card card-curso shadow-sm h-100 border-0 rounded-3">
-                    {% if curso.imagen_url %}
-                        <img src="{{ curso.imagen_url }}" class="card-img-top rounded-top" alt="{{ curso.titulo }}" style="height: 200px; object-fit: cover;">
-                    {% else %}
-                        <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop" class="card-img-top rounded-top" alt="Curso genérico" style="height: 200px; object-fit: cover;">
-                    {% endif %}
-                    
-                    <div class="card-body d-flex flex-column">
-                        <span class="badge bg-light text-dark border align-self-start mb-2">100% Online</span>
-                        <h5 class="card-title fw-bold">{{ curso.titulo }}</h5>
-                        <p class="card-text text-muted flex-grow-1">{{ curso.descripcion|truncatewords:20 }}</p>
-                        
-                        <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
-                            <div>
-                                <small class="text-muted d-block">Inversión</small>
-                                <span class="fs-4 fw-bold text-primary">${{ curso.precio_b2c }}</span>
-                            </div>
-                            <a href="{% url 'detalle_curso' curso.id %}" class="btn btn-primary">
-                                Ver Curso <i class="fa-solid fa-arrow-right ms-1"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% empty %}
-            <div class="col-12 text-center py-4">
-                <p class="text-muted">Próximamente estaremos sumando nuevos cursos a la plataforma.</p>
-            </div>
-            {% endfor %}
+<div class="container py-5">
+    <!-- Encabezado con Botones -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Capacitaciones</h2>
+        <div>
+            <a href="{% url 'canjear_codigo' %}" class="btn btn-outline-secondary me-2">Tengo un código</a>
         </div>
     </div>
 
-</body>
-</html>
+    <div class="row g-4">
+    {% for curso in cursos %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card card-curso shadow-sm h-100 border-0 rounded-3">
+                {% if curso.imagen_url %}
+                    <img src="{{ curso.imagen_url }}" class="card-img-top rounded-top" alt="{{ curso.titulo }}" style="height: 200px; object-fit: cover;">
+                {% else %}
+                    <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop" class="card-img-top rounded-top" alt="Curso genérico" style="height: 200px; object-fit: cover;">
+                {% endif %}
+                
+                <div class="card-body d-flex flex-column">
+                    <span class="badge bg-light text-dark border align-self-start mb-2">100% Online</span>
+                    <h5 class="card-title fw-bold">{{ curso.titulo }}</h5>
+                    <p class="card-text text-muted flex-grow-1">{{ curso.descripcion|truncatewords:20 }}</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                        <div>
+                            <small class="text-muted d-block">Inversión</small>
+                            <span class="fs-4 fw-bold text-primary">${{ curso.precio_b2c }}</span>
+                        </div>
+                        <a href="{% url 'detalle_curso' curso.id %}" class="btn btn-primary">
+                            Ver Curso <i class="fa-solid fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12 text-center py-5">
+            <p class="text-muted fs-5">Próximamente estaremos sumando nuevos cursos a la plataforma.</p>
+        </div>
+    {% endfor %}
+    </div>
+</div>
 {% endblock %}

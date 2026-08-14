@@ -7,6 +7,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.contrib.auth.tokens import default_token_generator
 
 # Todos los modelos importados juntos al inicio
 from .models import Curso, Inscripcion, CodigoB2B, PerfilUsuario
@@ -180,7 +185,11 @@ def quien_soy(request):
     return render(request, 'capacitaciones/quien_soy.html')
 
 def capacitaciones(request):
-    return render(request, 'capacitaciones/catalogo.html') 
+    # Obtenemos los cursos activos desde la base de datos
+    cursos = Curso.objects.filter(activo=True)
+    
+    # Se los pasamos a la plantilla mediante el diccionario de contexto
+    return render(request, 'capacitaciones/catalogo.html', {'cursos': cursos}) 
 
 def contacto(request):
     return render(request, 'capacitaciones/contacto.html')
@@ -189,3 +198,64 @@ def contacto(request):
 def detalle_curso(request, curso_id):
     curso = get_object_or_404(Curso, id=curso_id)
     return render(request, 'capacitaciones/detalle_curso.html', {'curso': curso})
+
+# 1. VISTA DE REGISTRO
+def registro(request):
+    if request.method == 'POST':
+        username = request.POST.get('username').strip()
+        email = request.POST.get('email').strip()
+        password = request.POST.get('password')
+
+        # Validar si el usuario o email ya existen
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "El nombre de usuario ya está registrado.")
+            return render(request, 'capacitaciones/registro.html')
+
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "El correo electrónico ya está registrado.")
+            return render(request, 'capacitaciones/registro.html')
+
+        # Crear el usuario inactivo
+        user = User.objects.create_user(username=username, email=email, password=password)
+        user.is_active = False  # No podrá loguearse hasta verificar email
+        user.save()
+
+        # Crear también su PerfilUsuario (si lo utilizas)
+        PerfilUsuario.objects.get_or_create(user=user)
+
+        # Generar Token y Enlace de Verificación
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        domain = request.build_absolute_uri('/')[:-1]
+        link_activacion = f"{domain}/activar/{uid}/{token}/"
+
+        # Contenido del correo
+        asunto = "Confirma tu cuenta - Academia S&H"
+        mensaje = f"Hola {username},\n\nGracias por registrarte. Para activar tu cuenta, haz clic en el siguiente enlace:\n{link_activacion}\n\nSi no solicitaste este registro, ignora este mensaje."
+
+        try:
+            send_mail(asunto, mensaje, settings.DEFAULT_FROM_EMAIL, [email])
+            messages.success(request, "¡Registro casi listo! Te hemos enviado un correo de confirmación. Revisa tu bandeja de entrada o Spam.")
+            return redirect('login')
+        except Exception as e:
+            messages.error(request, "Ocurrió un error al enviar el correo de activación. Inténtalo más tarde.")
+
+    return render(request, 'capacitaciones/registro.html')
+
+
+# 2. VISTA DE ACTIVACIÓN DE CUENTA
+def activar_cuenta(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        messages.success(request, "¡Tu cuenta ha sido activada con éxito! Ya puedes iniciar sesión.")
+        return redirect('login')
+    else:
+        messages.error(request, "El enlace de activación es inválido o ha expirado.")
+        return redirect('home')

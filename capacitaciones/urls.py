@@ -38,4 +38,7 @@ urlpatterns = [
     # Rutas de Autenticación
     path('login/', auth_views.LoginView.as_view(template_name='capacitaciones/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),
+
+    path('registro/', views.registro, name='registro'),
+    path('activar/<uidb64>/<token>/', views.activar_cuenta, name='activar_cuenta'),
 ]

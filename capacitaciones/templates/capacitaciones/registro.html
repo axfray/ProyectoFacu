@@ -1,0 +1,53 @@
+{% extends 'capacitaciones/base.html' %}
+
+{% block content %}
+<section class="py-5" style="background-color: #f8f9fa; min-height: 80vh; display: flex; align-items: center;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5 col-lg-4">
+                <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                    <div class="card-body p-4 p-sm-5">
+                        <h3 class="fw-bold text-center text-dark mb-4">Crear Cuenta</h3>
+
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} py-2 px-3 small rounded-3 mb-3">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <form method="POST" action="{% url 'registro' %}">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-semibold mb-1">Nombre de Usuario</label>
+                                <input type="text" name="username" class="form-control form-control-lg fs-6" placeholder="ej: JuanPerez" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-semibold mb-1">Correo Electrónico (Gmail)</label>
+                                <input type="email" name="email" class="form-control form-control-lg fs-6" placeholder="tu@email.com" required>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label text-muted small fw-semibold mb-1">Contraseña</label>
+                                <input type="password" name="password" class="form-control form-control-lg fs-6" required>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 py-2 fs-6 fw-semibold rounded-3 mb-3">
+                                Registrarme
+                            </button>
+                        </form>
+
+                        <div class="text-center mt-3 border-top pt-3">
+                            <span class="small text-muted">¿Ya tienes cuenta?</span> 
+                            <a href="{% url 'login' %}" class="text-decoration-none small fw-bold">Inicia Sesión</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
