@@ -175,3 +175,17 @@ def home(request):
     # Traemos hasta 3 cursos destacados para la portada
     cursos_destacados = Curso.objects.filter(activo=True, precio_b2c__gt=0)[:3]
     return render(request, 'capacitaciones/home.html', {'cursos': cursos_destacados})
+
+def quien_soy(request):
+    return render(request, 'capacitaciones/quien_soy.html')
+
+def capacitaciones(request):
+    return render(request, 'capacitaciones/catalogo.html') 
+
+def contacto(request):
+    return render(request, 'capacitaciones/contacto.html')
+
+
+def detalle_curso(request, curso_id):
+    curso = get_object_or_404(Curso, id=curso_id)
+    return render(request, 'capacitaciones/detalle_curso.html', {'curso': curso})

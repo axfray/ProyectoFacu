@@ -7,6 +7,23 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('home/', views.home),
 
+    path('', views.home, name='home'),
+    path('quien-soy/', views.quien_soy, name='quien_soy'),
+
+    path('', views.home, name='home'),
+    path('capacitaciones/', views.capacitaciones, name='capacitaciones'),
+
+    path('', views.home, name='home'),
+    path('quien-soy/', views.quien_soy, name='quien_soy'),
+    path('capacitaciones/', views.capacitaciones, name='capacitaciones'),
+    path('contacto/', views.contacto, name='contacto'),
+
+    path('', views.home, name='home'),
+    path('quien-soy/', views.quien_soy, name='quien_soy'),
+    path('capacitaciones/', views.capacitaciones, name='capacitaciones'),
+    path('contacto/', views.contacto, name='contacto'),
+    path('curso/<int:curso_id>/', views.detalle_curso, name='detalle_curso'),
+
     # Flujo B2C (Mercado Pago y Catálogo)
     path('cursos/', views.catalogo_cursos, name='catalogo_cursos'),
     path('comprar/<int:curso_id>/', views.iniciar_compra_b2c, name='comprar_curso'),
