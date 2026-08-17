@@ -12,14 +12,8 @@ from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from .models import Curso, Inscripcion
-
-# Todos los modelos importados juntos al inicio
-from .models import Curso, Inscripcion, CodigoB2B, PerfilUsuario
+import uuid
+from .models import Curso, Inscripcion, Examen, Pregunta, Opcion, IntentoExamen, Certificado
 
 
 # ==========================================
@@ -268,27 +262,99 @@ def activar_cuenta(request, uidb64, token):
 @login_required
 def ver_curso(request, curso_id):
     curso = get_object_or_404(Curso, id=curso_id)
-    
-    # Seguridad: Verificar si el usuario está inscripto
-    inscrito = Inscripcion.objects.filter(usuario=request.user, curso=curso).exists()
-    if not inscrito:
-        messages.error(request, "Debes adquirir este curso antes de acceder al contenido.")
+
+    # Validar inscripción
+    if not Inscripcion.objects.filter(usuario=request.user, curso=curso).exists():
+        messages.error(request, "Debes estar inscripto para ver las clases.")
         return redirect('mis_cursos')
 
-    return render(request, 'capacitaciones/ver_curso.html', {'curso': curso})
+    lecciones = curso.lecciones.order_by('orden')
+    leccion_principal = lecciones.first()  # Primera lección para reproducir
+
+    return render(request, 'capacitaciones/ver_curso.html', {
+        'curso': curso,
+        'lecciones': lecciones,
+        'leccion_principal': leccion_principal
+    })
 
 
 @login_required
 def tomar_examen(request, curso_id):
     curso = get_object_or_404(Curso, id=curso_id)
-    
-    inscrito = Inscripcion.objects.filter(usuario=request.user, curso=curso).exists()
-    if not inscrito:
+
+    # 1. Validar inscripción
+    if not Inscripcion.objects.filter(usuario=request.user, curso=curso).exists():
+        messages.error(request, "Debes estar inscripto para rendir la evaluación.")
         return redirect('mis_cursos')
 
+    # 2. Obtener examen
+    try:
+        examen = curso.examen
+    except Examen.DoesNotExist:
+        messages.warning(request, "Este curso aún no tiene un examen habilitado.")
+        return redirect('ver_curso', curso_id=curso.id)
+
+    # 3. Validar límite de intentos
+    intentos_realizados = IntentoExamen.objects.filter(usuario=request.user, examen=examen).count()
+    if intentos_realizados >= examen.limite_intentos:
+        messages.error(request, f"Has alcanzado el límite máximo de {examen.limite_intentos} intentos para este examen.")
+        return redirect('mis_cursos')
+
+    # CORREGIDO: Se busca Pregunta por curso y se precargan las opciones
+    preguntas = Pregunta.objects.filter(curso=curso)
+
+    # 4. Procesar respuestas
     if request.method == 'POST':
-        # Aquí procesas las respuestas del examen
-        messages.success(request, "¡Examen completado con éxito!")
-        return redirect('mis_cursos')
+        total_preguntas = preguntas.count()
+        if total_preguntas == 0:
+            messages.error(request, "El examen no contiene preguntas activas.")
+            return redirect('ver_curso', curso_id=curso.id)
 
-    return render(request, 'capacitaciones/examen.html', {'curso': curso})
+        respuestas_correctas = 0
+        for pregunta in preguntas:
+            opcion_id = request.POST.get(f'pregunta_{pregunta.id}')
+            if opcion_id:
+                try:
+                    # CORREGIDO: Se utiliza la clase Opcion en lugar de OpcionRespuesta
+                    opcion = Opcion.objects.get(id=int(opcion_id), pregunta=pregunta)
+                    if opcion.es_correcta:
+                        respuestas_correctas += 1
+                except Opcion.DoesNotExist:
+                    pass
+
+        # Calcular porcentaje (0 - 100)
+        nota_obtenida = int((respuestas_correctas / total_preguntas) * 100)
+        aprobado = nota_obtenida >= examen.nota_minima_aprobacion
+
+        # Registrar intento
+        IntentoExamen.objects.create(
+            usuario=request.user,
+            examen=examen,
+            nota_obtenida=nota_obtenida,
+            aprobado=aprobado
+        )
+
+        # Generar certificado si aprobó y no tenía uno previo
+        if aprobado and not Certificado.objects.filter(usuario=request.user, curso=curso).exists():
+            Certificado.objects.create(
+                codigo_validacion=str(uuid.uuid4())[:12].upper(),
+                usuario=request.user,
+                curso=curso
+            )
+
+        return render(request, 'capacitaciones/resultado_examen.html', {
+            'curso': curso,
+            'examen': examen,
+            'nota_obtenida': nota_obtenida,
+            'aprobado': aprobado,
+            'correctas': respuestas_correctas,
+            'total': total_preguntas,
+            'intentos_restantes': examen.limite_intentos - (intentos_realizados + 1)
+        })
+
+    return render(request, 'capacitaciones/examen.html', {
+        'curso': curso,
+        'examen': examen,
+        'preguntas': preguntas,
+        'intentos_restantes': examen.limite_intentos - intentos_realizados
+    })

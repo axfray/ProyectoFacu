@@ -2,28 +2,47 @@
 
 {% block content %}
 <div class="container py-5">
-    <h2 class="fw-bold text-center mb-4">Examen Final: {{ curso.titulo }}</h2>
-    
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <form method="POST" class="card shadow-sm p-4">
+            <div class="text-center mb-4">
+                <h2 class="fw-bold">Evaluación: {{ curso.titulo }}</h2>
+                <p class="text-muted mb-1">Nota mínima de aprobación: <strong>{{ examen.nota_minima_aprobacion }}%</strong></p>
+                <small class="badge bg-info text-dark">Intentos restantes: {{ intentos_restantes }}</small>
+            </div>
+
+            <form method="POST">
                 {% csrf_token %}
-                <h5 class="fw-bold mb-3">Responde las siguientes preguntas:</h5>
                 
-                <!-- Aquí irían tus preguntas desde la base de datos o un formulario estático -->
-                <div class="mb-4">
-                    <label class="form-label fw-semibold">1. ¿Cuál es el objetivo principal del módulo 1?</label>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="p1" value="a" id="p1a">
-                        <label class="form-check-label" for="p1a">Opción A</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="p1" value="b" id="p1b">
-                        <label class="form-check-label" for="p1b">Opción B</label>
+                {% for pregunta in preguntas %}
+                <div class="card shadow-sm border-0 rounded-3 mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3">
+                            <span class="badge bg-primary me-2">{{ forloop.counter }}</span>
+                            {{ pregunta.texto }} <!-- Cambiado de 'enunciado' a 'texto' -->
+                        </h5>
+                        
+                        <div class="d-flex flex-column gap-2 mt-3">
+                            {% for opcion in pregunta.opciones.all %}
+                            <div class="form-check p-3 rounded border bg-light">
+                                <input class="form-check-input ms-1 me-3" type="radio" 
+                                       name="pregunta_{{ pregunta.id }}" 
+                                       value="{{ opcion.id }}" 
+                                       id="opcion_{{ opcion.id }}" required>
+                                <label class="form-check-label w-100 fw-semibold text-dark" for="opcion_{{ opcion.id }}">
+                                    {{ opcion.texto }} <!-- Cambiado de 'texto_opcion' a 'texto' -->
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
+                {% endfor %}
 
-                <button type="submit" class="btn btn-primary btn-lg w-100">Enviar Respuestas</button>
+                <div class="d-grid mt-4">
+                    <button type="submit" class="btn btn-success btn-lg fw-bold">
+                        <i class="fa-solid fa-paper-plane me-2"></i> Enviar Evaluación
+                    </button>
+                </div>
             </form>
         </div>
     </div>

@@ -1,0 +1,65 @@
+{% extends 'capacitaciones/base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-lg border-0 rounded-4 text-center p-4">
+                <div class="card-body">
+                    {% if aprobado %}
+                        <div class="mb-3 text-success">
+                            <i class="fa-solid fa-circle-check fa-4x"></i>
+                        </div>
+                        <h2 class="fw-bold text-success mb-2">¡Felicitaciones! Aprobaste</h2>
+                        <p class="text-muted">Has completado con éxito la evaluación de <strong>{{ curso.titulo }}</strong>.</p>
+                    {% else %}
+                        <div class="mb-3 text-danger">
+                            <i class="fa-solid fa-circle-xmark fa-4x"></i>
+                        </div>
+                        <h2 class="fw-bold text-danger mb-2">No has alcanzado la nota mínima</h2>
+                        <p class="text-muted">Necesitabas un <strong>{{ examen.nota_minima_aprobacion }}%</strong> para aprobar este examen.</p>
+                    {% endif %}
+
+                    <hr class="my-4">
+
+                    <!-- Resumen de puntuación -->
+                    <div class="row text-center mb-4">
+                        <div class="col-6 border-end">
+                            <h4 class="fw-bold mb-0 {% if aprobado %}text-success{% else %}text-danger{% endif %}">
+                                {{ nota_obtenida }}%
+                            </h4>
+                            <small class="text-muted">Nota Obtenida</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="fw-bold mb-0 text-dark">{{ correctas }} / {{ total }}</h4>
+                            <small class="text-muted">Respuestas Correctas</small>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="d-grid gap-2">
+                        {% if aprobado %}
+                            <a href="{% url 'mis_cursos' %}" class="btn btn-success btn-lg fw-bold">
+                                <i class="fa-solid fa-graduation-cap me-2"></i> Ir a Mis Cursos
+                            </a>
+                        {% else %}
+                            {% if intentos_restantes > 0 %}
+                                <a href="{% url 'tomar_examen' curso.id %}" class="btn btn-warning btn-lg fw-bold">
+                                    <i class="fa-solid fa-rotate-right me-2"></i> Reintentar Examen (Quedan {{ intentos_restantes }})
+                                </a>
+                            {% else %}
+                                <div class="alert alert-danger mb-3">
+                                    Has agotado todos tus intentos disponibles para este examen.
+                                </div>
+                            {% endif %}
+                            <a href="{% url 'ver_curso' curso.id %}" class="btn btn-outline-secondary">
+                                <i class="fa-solid fa-arrow-left me-2"></i> Volver a la clase
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

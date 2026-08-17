@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+import re
 
 class Empresa(models.Model):
     nombre = models.CharField(max_length=150)
@@ -44,6 +45,15 @@ class Leccion(models.Model):
     def __str__(self):
         return f"{self.curso.titulo} - {self.titulo}"
 
+    @property
+    def youtube_id(self):
+        """Extrae la ID del video de YouTube a partir de la URL"""
+        if not self.url_video:
+            return None
+        pattern = r'(?:v=|\/)([0-9A-Za-z_-]{11}).*'
+        match = re.search(pattern, self.url_video)
+        return match.group(1) if match else None
+
 class Examen(models.Model):
     curso = models.OneToOneField(Curso, on_delete=models.CASCADE, related_name='examen')
     nota_minima_aprobacion = models.PositiveIntegerField(default=70)
@@ -53,19 +63,38 @@ class Examen(models.Model):
         return f"Examen de {self.curso.titulo}"
 
 class Pregunta(models.Model):
-    examen = models.ForeignKey(Examen, on_delete=models.CASCADE, related_name='preguntas')
-    enunciado = models.TextField()
+    curso = models.ForeignKey(Curso, on_delete=models.CASCADE, related_name='preguntas')
+    texto = models.TextField("Texto de la pregunta")
 
     def __str__(self):
-        return self.enunciado
+        return f"{self.curso.titulo} - {self.texto[:50]}"
 
-class OpcionRespuesta(models.Model):
+    class Meta:
+        verbose_name = "Pregunta"
+        verbose_name_plural = "Preguntas"
+
+class Opcion(models.Model):
     pregunta = models.ForeignKey(Pregunta, on_delete=models.CASCADE, related_name='opciones')
-    texto_opcion = models.CharField(max_length=255)
-    es_correcta = models.BooleanField(default=False)
+    texto = models.CharField("Texto de la opción", max_length=255)
+    es_correcta = models.BooleanField("¿Es la opción correcta?", default=False)
 
     def __str__(self):
-        return f"{self.texto_opcion} ({'Correcta' if self.es_correcta else 'Incorrecta'})"
+        return self.texto
+
+    class Meta:
+        verbose_name = "Opción"
+        verbose_name_plural = "Opciones"
+
+class ResultadoExamen(models.Model):
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    curso = models.ForeignKey(Curso, on_delete=models.CASCADE)
+    puntaje = models.FloatField("Porcentaje obtenido (0-100)")
+    aprobado = models.BooleanField("¿Aprobó?", default=False)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        estado = "Aprobado" if self.aprobado else "Reprobado"
+        return f"{self.usuario.username} - {self.curso.titulo}: {self.puntaje}% ({estado})"
 
 class CodigoB2B(models.Model):
     codigo = models.CharField(max_length=50, unique=True)
